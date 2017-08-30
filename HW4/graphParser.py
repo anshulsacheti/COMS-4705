@@ -8,7 +8,7 @@ import dynet
 from layers import MLP, LSTM
 from decoder import parse_proj
 
-import pdb
+# import pdb
 
 class GraphParser:
     '''

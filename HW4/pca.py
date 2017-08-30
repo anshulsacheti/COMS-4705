@@ -3,6 +3,7 @@ from sklearn.decomposition import PCA
 import json
 import pandas
 import matplotlib as mpl
+import nltk
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
@@ -24,7 +25,7 @@ word_embeddings_json = json.load(open('output/model_embeddings.json'))
 # PCA on the embedding matrix (but make sure to keep track of which words
 # match up with which embeddings)
 
-word_embeddings=word_embeddings_json['word']
+word_embeddings = word_embeddings_json['word']
 
 #Get size of matrix using json data
 rowCount = len(list(word_embeddings.keys()))
@@ -49,22 +50,37 @@ verbEmbeddings = []
 #Iterate over all words
 #Use dict sets of pos_words to determine if word is a verb
 for i,word in enumerate(word_embeddings.keys()):
-    for verbType in verbsPOS:
-        if word in vocabTrain.pos_words[verbType]:
-            # print("Found %s as %s" % (word, verbType))
-            verbs.append(word)
-            if verbEmbeddings==[]:
-                verbEmbeddings=np.array([fitted_word_embeddings[i]])
-            else:
-                # print("verbEmbed: %s, fitted: %s" % (verbEmbeddings, fitted_word_embeddings[i]))
-                verbEmbeddings=np.append(verbEmbeddings, [fitted_word_embeddings[i]],axis=0)
-            break
+    wordIndex = vocabTrain.word2idx[word]
+    for j,sent in enumerate(indices):
+        for k,w in enumerate(sent):
+            pos = vocabTrain.idx2pos[pos_indices[j][k]]
+            if pos in verbsPOS and word not in verbs:
+                verbs.append(word)
+                if verbEmbeddings==[]:
+                    verbEmbeddings=np.array([fitted_word_embeddings[i]])
+                else:
+                    # print("verbEmbed: %s, fitted: %s" % (verbEmbeddings, fitted_word_embeddings[i]))
+                    verbEmbeddings=np.append(verbEmbeddings, [fitted_word_embeddings[i]],axis=0)
+
+    # tags = nltk.pos_tag(word)
+    # for tag in tags:
+    #     tag = tag[1]
+    #     if tag in verbsPOS:
+    #         # print("Found %s as %s" % (word, verbType))
+    #         verbs.append(word)
+    #         if verbEmbeddings==[]:
+    #             verbEmbeddings=np.array([fitted_word_embeddings[i]])
+    #         else:
+    #             # print("verbEmbed: %s, fitted: %s" % (verbEmbeddings, fitted_word_embeddings[i]))
+    #             verbEmbeddings=np.append(verbEmbeddings, [fitted_word_embeddings[i]],axis=0)
+    #         break
 
 labels = verbs
 wordFig=plt.figure(1)
 plt.scatter(verbEmbeddings[:,0], verbEmbeddings[:,1])
 for x, y, label in zip(verbEmbeddings[:, 0], verbEmbeddings[:, 1], labels):
     plt.annotate(label,xy=(x, y))
+wordFig.savefig('verb_visualization.png')
 wordFig.show()
 
 #=============================================================================
@@ -91,6 +107,7 @@ posFig = plt.figure(2)
 plt.scatter(fitted_pos_embeddings[:,0], fitted_pos_embeddings[:,1])
 for x, y, label in zip(fitted_pos_embeddings[:, 0], fitted_pos_embeddings[:, 1], labels):
     plt.annotate(label,xy=(x, y))
+posFig.savefig('pos_visualization.png')
 posFig.show()
 # Then plot the results using a plotting library such as matplotlib
 # to make a scatterplot with each point represented on the scatterplot
@@ -104,10 +121,3 @@ posFig.show()
 # verb_visualization.png.
 
 plt.show()
-#Check if word is a verb in training set
-
-try:
-    wordIdx = vocabTrain.word2idx["word"]
-    pos = vocabTrain.idx2pos[wordIdx]
-except KeyError:
-    pass

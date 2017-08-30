@@ -60,8 +60,11 @@ def main(train_file, test_file, output, model, num_epochs, embeddings_init=None,
         p = subprocess.Popen(['perl', 'src/utils/eval.pl', '-g', test_file,  '-s', devpath],
                              stdout = subprocess.PIPE)
         out, err = p.communicate()
-        las = float(out.splitlines()[0].split()[-2])
-        uas = float(out.splitlines()[1].split()[-2])
+        try:
+            las = float(out.splitlines()[0].split()[-2])
+            uas = float(out.splitlines()[1].split()[-2])
+        except IndexError:
+            continue
 
         lasSet.append(las)
         uasSet.append(uas)
@@ -72,14 +75,17 @@ def main(train_file, test_file, output, model, num_epochs, embeddings_init=None,
         parser.save(os.path.join(output, os.path.basename(model)), vocab.idx2word, vocab.idx2pos if pos_d else None)
 
     #Generate visualization
-    lasplt=plt.scatter(list(range(num_epochs)), lasSet)
-    uasplt=plt.scatter(list(range(num_epochs)), uasSet)
+    lasplt=plt.scatter(list(range(len(lasSet))), lasSet)
+    uasplt=plt.scatter(list(range(len(uasSet))), uasSet)
     plt.legend([lasplt, uasplt], ['LAS', 'UAS'])
     plt.title('LAS/UAS Over Epochs')
     plt.ylabel('Error Value')
     plt.xlabel('Epoch')
-    plt.axis([0, num_epochs, 0, max([max(lasSet),max(uasSet)])])
-    plt.savefig('accuracy.png')
+    plt.axis([0, len(lasSet), 0, max([max(lasSet),max(uasSet)])])
+    if pos_d!=0:
+        plt.savefig('pos_accuracy.png')
+    else:
+        plt.savefig('word_accuracy.png')
     plt.show()
 
 if __name__ == '__main__':

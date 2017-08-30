@@ -3,7 +3,6 @@ import numpy as np
 import dynet
 from dynet import parameter
 from dynet import cmult, logistic, dot_product, tanh, softmax, rectify
-import pdb
 
 #dictionary of useful nonlinearities for your convenience
 nonlinearities = {'tanh': tanh,
@@ -133,8 +132,8 @@ class SimpleRNN:
         else:
             h_0 = h_start
 
-        #YOUR IMPLEMENTATION HERE
-        #raise NotImplementedError
+        #TODO: Check on reversal for SimpleRNN/LSTM
+        raise NotImplementedError
 
         outputList = []
         h_t = h_0
@@ -145,6 +144,7 @@ class SimpleRNN:
             for i in range(len(input)-1,-1,-1):
                 h_t = nonlinearities['tanh'](W_x*input[i] + W_h*h_t + b)
                 outputList.append(h_t)
+                outputList = list(reversed(outputList))
         else:
             for i in range(0,len(input)):
                 h_t = nonlinearities['tanh'](W_x*input[i] + W_h*h_t + b)
@@ -271,5 +271,9 @@ class LSTM:
             #cellList.extend([f_t,i_t,o_t,c_t])
             cellList.append(c_t)
         #stateList.extend(cellList)
-        outputList = [stateList, cellList]
+
+        if self.reverse:
+            outputList = [list(reversed(stateList)), list(reversed(cellList))]
+        else:
+            outputList = [stateList, cellList]
         return outputList

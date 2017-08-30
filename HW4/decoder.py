@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from collections import defaultdict, namedtuple
 from operator import itemgetter
-import pdb
+# import pdb
 
 def parse_proj(scores, gold=None):
     '''

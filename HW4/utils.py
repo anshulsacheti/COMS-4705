@@ -74,7 +74,6 @@ class Vocabulary:
         self.words = Counter()
         self.pos = Counter()
         self.rel = Counter()
-        self.pos_words = {}
 
         #go through each training example and add them to the counter
         #create pos_dict with sets
@@ -83,12 +82,6 @@ class Vocabulary:
                 self.words.update([node.norm])
                 self.pos.update([node.pos])
                 self.rel.update([node.relation])
-
-                #Create dict of pos_words with sets
-                try:
-                    self.pos_words[node.pos].add(node.norm)
-                except KeyError:
-                    self.pos_words[node.pos] = set([node.norm])
 
         #lookup table of indices to strings
         self.idx2word = list(self.words.keys())
@@ -144,11 +137,6 @@ class Vocabulary:
             depRel_tmp  = []
             for i in range(len(sent)):
 
-                #Replace words not in the vocabulary (self.word2idx) with the UNKNOWN token.
-                #iv) Randomly replace words with the UNKNOWN token with probability where w is the count of word w
-                #0.25/(0.25+#w)
-                #If the parameter deterministic is set to true, don’t do sampling.
-
                 #Try getting word from dict, assign UNKNOWN idx otherwise
                 #Use sampling if enabled
                 try:
@@ -170,7 +158,14 @@ class Vocabulary:
 
                 pos_tmp.append(self.pos2idx[sent[i].pos])
                 parent_tmp.append(sent[i].parent_id)
-                depRel_tmp.append(self.rel2idx[sent[i].relation])
+
+                #Handle case where key first seen in test set
+                try:
+                    depRel_tmp.append(self.rel2idx[sent[i].relation])
+                except KeyError:
+                    maxVal = max(self.rel2idx.values())
+                    self.rel2idx[sent[i].relation] = maxVal
+                    depRel_tmp.append(maxVal)
 
             #Keep track of each CONLL data point
             word_idx.append(word_tmp)
